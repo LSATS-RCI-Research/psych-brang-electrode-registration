@@ -1,5 +1,5 @@
 import numpy as np
-import nifti
+# import nifti
 import re
 
 # file IO
@@ -117,4 +117,5 @@ def read_surf(fp):
         return vs, fs, ras2xyz, c
 
 def read_nifti(fp):
-    return nifti.NiftiImage(fp)
+    # return nifti.NiftiImage(fp)
+    pass

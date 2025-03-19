@@ -1,37 +1,32 @@
-electrode-registration-app
-==========================
+# Electrode Registration App
 
-a GUI application for registering ECoG electrodes onto pre-implant dura surface.
+A GUI application for registering ECoG electrodes onto pre-implant dura surface.
+```sh
+python3 app/app.py
+```
 
+## Screenshot
 
-screenshot
-----------
 ![screenshot](https://raw.github.com/towle-lab/electrode-registration-app/master/screenshot.register+label.png)
 
-
-dependency
-----------
-- [`VTK`](http://www.vtk.org/), on Ubuntu, you can install it via `apt`: `$ sudo apt-get install python-vtk`. 
-- [`Qt`](http://qt-project.org/)
-- mayavi
-- numpy, scipy
-- PySide
-- pynifti
+## Dependencies
+- Python 3.11
+- [mayavi](https://github.com/enthought/mayavi/zipball/main)
+  - `pip install https://github.com/enthought/mayavi/zipball/main`
+- VTK
 - ansicolors
+- nibabel
+- numpy==1.26.4
+- scipy
+- nibabel
+- PySide6
+- PyQt5
 
-You can install the required python packages via `$ pip install -r requirements.txt`
+You can install the required Python packages via:
 
+```sh
+$ pip install -r requirements.txt
+```
 
-usage
------
-`$ python -m app.app`
-
-
-license
--------
-The software is licensed under GPLv2 for **non-commercial** usage. Please contact the authors if you are interested in commercial license.
-
-
-authors
--------
-Zhongtian (Falcon) Dai
+## Known Issues
+It's currently unclear what `nifti` is in core.io.read_nifti

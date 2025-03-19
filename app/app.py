@@ -574,7 +574,7 @@ class Application(object):
         # edit tab
         ui.treeView_edit.setModel(self.segment_model)
         # show only the first column
-        for i in xrange(1, len(ComponentItem.prop_map)):
+        for i in range(1, len(ComponentItem.prop_map)):
             ui.treeView_edit.setColumnHidden(i, True)
 
         self.segment_selection_model = ui.treeView_edit.selectionModel()

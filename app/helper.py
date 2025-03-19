@@ -10,20 +10,20 @@ except NameError:
 
 def info(*msg):
     msg = map(str, msg)
-    print colors.bold(colors.green('INFO')), ' '.join(msg)
+    print(colors.bold(colors.green('INFO')), ' '.join(msg))
 
 def err(*msg):
     msg = map(str, msg)
-    print colors.bold(colors.red('ERROR')), ' '.join(msg)
+    print(colors.bold(colors.red('ERROR')), ' '.join(msg))
 
 def debug(*msg):
     if DEBUG:
         msg = map(str, msg)
-        print colors.bold(colors.blue('DEBUG')), ' '.join(msg)
+        print(colors.bold(colors.blue('DEBUG')), ' '.join(msg))
 
 def warn(*msg):
     msg = map(str, msg)
-    print colors.bold(colors.yellow('WARNING')), ' '.join(msg)
+    print(colors.bold(colors.yellow('WARNING')), ' '.join(msg))
 
 def print_traceback():
     t, v, tb = sys.exc_info()
