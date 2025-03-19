@@ -27,6 +27,3 @@ You can install the required Python packages via:
 ```sh
 $ pip install -r requirements.txt
 ```
-
-## Known Issues
-It's currently unclear what `nifti` is in core.io.read_nifti

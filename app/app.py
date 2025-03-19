@@ -688,7 +688,7 @@ class Application(object):
         dialog_ui.buttonBox.accepted.connect(validate)
 
         # show file dialog
-        if QtGui.QDialog.Accepted == dialog.exec_():
+        if QtGui.QDialog.Accepted == dialog.exec():
             info('read CT and dura paths')
             self.read_ct_dura(dialog_ui.ctLineEdit.text(), dialog_ui.duraLineEdit.text())
 
@@ -715,7 +715,7 @@ class Application(object):
             self.dura_vertices, self.dura_faces, mc = self.dura 
             x, y, z = self.dura_vertices.T
 
-            self.ct_volume = self.ct.getDataArray()
+            self.ct_volume = np.array(self.ct.dataobj)
 
             info('loaded CT')
             info('loaded dura mesh')
@@ -813,14 +813,14 @@ class Application(object):
             self.segment_distance_threshold = distance
             info('thresholding on CT intensity value at %d...' % threshold)
 
-            ct_high = np.asarray(np.where(threshold <= self.ct.getDataArray().T, True, False), 'i1')
+            ct_high = np.asarray(np.where(threshold <= np.array(self.ct.dataobj).T, True, False), 'i1')
             #info('done thresholding on CT intensity value')
             labels = ndimage.label(ct_high)[0]
             slices = ndimage.find_objects(labels)
             info('found %d connected components' % len(slices))
 
             info('done thresholding CT')
-            sf = self.ct.getSForm()
+            sf = self.ct.get_sform()
             dv = np.product(self.ct.getVoxDims())
             debug('vox dims %r, dv = %f' % (self.ct.getVoxDims(), dv))
 
@@ -1590,6 +1590,6 @@ if __name__ == '__main__':
     main = Application(ui=ui, mlab=mayavi_widget.visualization.scene.mlab)
     
     window.show()
-    app.exec_()
+    app.exec()
 
     info('exited')

@@ -1,5 +1,6 @@
+import numpy
 import numpy as np
-# import nifti
+import nibabel
 import re
 
 # file IO
@@ -87,7 +88,7 @@ def read_geometry(fp):
     else:
         raise ValueError("File does not appear to be a Freesurfer surface")
 
-    coords = coords.astype(np.float)  # XXX: due to mayavi bug on mac 32bits
+    coords = coords.astype(float)  # XXX: due to mayavi bug on mac 32bits
     return coords, faces
 
 def read_vol_geom(fp):
@@ -96,20 +97,20 @@ def read_vol_geom(fp):
     fp.readline()
     fp.readline()
     fp.readline()
-    
+
     # local to world transform
     ras2xyz = np.zeros((3, 3))
 
-    ras2xyz[0] = map(float, re.findall(r'^xras\s+=\s+(.+)\s+(.+)\s+(.+)', fp.readline())[0])
-    ras2xyz[1] = map(float, re.findall(r'^yras\s+=\s+(.+)\s+(.+)\s+(.+)', fp.readline())[0])
-    ras2xyz[2] = map(float, re.findall(r'^zras\s+=\s+(.+)\s+(.+)\s+(.+)', fp.readline())[0])
+    ras2xyz[0] = list(map(float, re.findall(r'^xras\s+=\s+(.+)\s+(.+)\s+(.+)', fp.readline().decode('utf-8'))[0]))
+    ras2xyz[1] = list(map(float, re.findall(r'^yras\s+=\s+(.+)\s+(.+)\s+(.+)', fp.readline().decode('utf-8'))[0]))
+    ras2xyz[2] = list(map(float, re.findall(r'^zras\s+=\s+(.+)\s+(.+)\s+(.+)', fp.readline().decode('utf-8'))[0]))
 
-    c = np.array(map(float, re.findall(r'^cras\s+=\s+(.+)\s+(.+)\s+(.+)', fp.readline())[0]))
+    c = np.array(list(map(float, re.findall(r'^cras\s+=\s+(.+)\s+(.+)\s+(.+)', fp.readline().decode('utf-8'))[0])))
 
     return ras2xyz, c
 
 def read_surf(fp):
-    if isinstance(fp, basestring):
+    if isinstance(fp, str):
         fp = open(fp, 'rb')
     with fp:
         vs, fs = read_geometry(fp)
@@ -118,4 +119,4 @@ def read_surf(fp):
 
 def read_nifti(fp):
     # return nifti.NiftiImage(fp)
-    pass
+    return nibabel.load(fp)
