@@ -41,6 +41,7 @@ from mayavi.modules.api import Outline, Text3D, Glyph
 from core import io, estimate, register
 import numpy as np
 from scipy import ndimage, spatial
+from scipy.ndimage import center_of_mass
 from sklearn import cluster
 
 from helper import *
@@ -145,7 +146,7 @@ class ComponentItem(object):
     
     @property
     def centroid(self):
-        c = ndimage.measurements.center_of_mass(self.voxel)
+        c = center_of_mass(self.voxel)
         return self.transform[:3, :3].dot(np.reshape(c, (3, -1))) + self.transform[:3, 3:]
 
     @property
@@ -393,7 +394,7 @@ class FlattenTreeProxyModel(QtGui.QAbstractProxyModel):
                 self.tree_to_list[tree_index_tuple] = idx
                 idx += 1
             if sm.hasChildren(x):
-                for r in reversed(xrange(sm.rowCount(x))):
+                for r in reversed(range(sm.rowCount(x))):
                     o.append(sm.index(r, 0, x))
 
         debug('built indices')
@@ -821,8 +822,8 @@ class Application(object):
 
             info('done thresholding CT')
             sf = self.ct.get_sform()
-            dv = np.product(self.ct.getVoxDims())
-            debug('vox dims %r, dv = %f' % (self.ct.getVoxDims(), dv))
+            dv = np.product(self.ct.header.get_zooms())
+            debug('vox dims %r, dv = %f' % (self.ct.header.get_zooms(), dv))
 
             debug('building KD-tree of %d dura vertices' % len(self.dura_vertices))
             self.dura_vertices_kdtree = spatial.cKDTree(self.dura_vertices + self.dura[2][:3, 3:].T)
@@ -836,12 +837,13 @@ class Application(object):
             #view = self.get_view()
 
             for i, s in enumerate(slices):
-                bbc0 = np.reshape(map(lambda x: max(0, x.start - 1), s), (-1, 1))
-                bbc1 = np.reshape(map(lambda x: x.stop + 1, s), (-1, 1))
+                bbc0 = np.reshape(list(map(lambda x: max(0, x.start - 1), s)), (-1, 1))
+                bbc1 = np.reshape(list(map(lambda x: x.stop + 1, s)), (-1, 1))
+                voxel = np.asarray(np.where(labels[slice(bbc0[0][0], bbc1[0][0]), slice(bbc0[1][0], bbc1[1][0]), slice(
+                    bbc0[2][0], bbc1[2][0])] == i + 1, 1, 0), 'i1')
+                size = voxel.sum() * dv
                 bb_center = sf[:3, :3].dot(bbc0 + bbc1) / 2. + sf[:3, 3:]
                 distance, index = self.dura_vertices_kdtree.query(bb_center[:, 0])
-                voxel = np.asarray(np.where(labels[slice(bbc0[0], bbc1[0]), slice(bbc0[1], bbc1[1]), slice(bbc0[2], bbc1[2])] == i + 1, 1, 0), 'i1')
-                size = voxel.sum() * dv
                 #debug('component %d' % i)
                 if self.segment_size_threshold < size and distance < self.segment_distance_threshold:
                     #debug('component %d, size %.2fmm^3, %.2fmm away from dura, bounded at %r is segmented' % (i, size, distance, s))
