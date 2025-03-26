@@ -780,14 +780,14 @@ class Application(object):
             # the contour filter is not present, create the
             # whole pipeline
             
-            img = ct.getDataArray().T
+            img = np.array(self.ct.dataobj).T
             #ndimage.gaussian_filter(img, 0.5, output=img)
             source = mlab.pipeline.scalar_field(img)
             
             contour_filter = mlab.pipeline.contour(source)
             contour_filter.filter.contours = [threshold]
 
-            transform_filter = build_transform_filter(mlab, contour_filter, ct.getSForm())
+            transform_filter = build_transform_filter(mlab, contour_filter, ct.get_sform())
 
             normal_filter = mlab.pipeline.poly_data_normals(transform_filter)
             surface = mlab.pipeline.surface(normal_filter, color=(0.2, 0.9, 0.4))
