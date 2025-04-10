@@ -2,7 +2,7 @@ VTK
 ansicolors
 mayavi @ git+https://github.com/enthought/mayavi@main
 nibabel
-numpy==1.26.4
+numpy==2.0.2
 scipy
 scikit-learn
 nibabel
