@@ -4,6 +4,7 @@ mayavi @ git+https://github.com/enthought/mayavi@main
 nibabel
 numpy==1.26.4
 scipy
+scikit-learn
 nibabel
 PySide6
 PyQt5

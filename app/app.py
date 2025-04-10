@@ -780,7 +780,7 @@ class Application(object):
             # the contour filter is not present, create the
             # whole pipeline
             
-            img = np.array(self.ct.dataobj).T
+            img = np.array(self.ct.dataobj)
             #ndimage.gaussian_filter(img, 0.5, output=img)
             source = mlab.pipeline.scalar_field(img)
             

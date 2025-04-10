@@ -3,3 +3,9 @@ venv/
 *~
 #*
 *.ui.autosave
+
+.idea/
+
+DemoData/
+
+.DS_Store
