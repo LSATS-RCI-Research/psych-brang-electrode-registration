@@ -27,3 +27,6 @@ You can install the required Python packages via:
 ```sh
 $ pip install -r requirements.txt
 ```
+
+## Usage
+Demo data exists in [Dropbox](https://www.dropbox.com/scl/fi/kre4a67yw61ktsg6qyllb/Demo-Data.zip?rlkey=aquw3ojn87dvyl2dlcn7guavg&st=l2vlttvc&dl=0). Use the .lh for 1208UM and the .rh dura file for 1206UM.
