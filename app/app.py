@@ -107,7 +107,9 @@ class ComponentItem(object):
             'set': lambda x: int(x) if x.strip().isdigit() else None, 
         },
     }
-    grid_color_lut = map(lambda rgb: tuple(map(lambda x: x / 255., rgb)), json.load(open('app/brewer-qualitative.strong.12.json')))
+    with open('app/brewer-qualitative.strong.12.json') as f:
+        grid_color_lut = list(map(lambda rgb: tuple(map(lambda x: x / 255., rgb)), json.load(f)))
+
     grid_labels = []
 
     def __init__(self, name, voxel, transform, 
@@ -165,15 +167,13 @@ class ComponentItem(object):
         if self.text and self.grid_id:
             self.text.text = '    %s %d' % (self.grid_label, self.grid_id)
 
-        color = ComponentItem.grid_color_lut[0]
-        n_color = len(ComponentItem.grid_color_lut)
+        n_color = len(list(ComponentItem.grid_color_lut))
         if self._grid_label in ComponentItem.grid_labels:
             grid_index = ComponentItem.grid_labels.index(self._grid_label)
             color = ComponentItem.grid_color_lut[grid_index % n_color]
         else:
             ComponentItem.grid_labels.append(self._grid_label)
-            color = ComponentItem.grid_color_lut[(-1 % len(ComponentItem.grid_labels)) % n_color]
-
+            color = list(ComponentItem.grid_color_lut)[(-1 % len(ComponentItem.grid_labels)) % n_color]
         #import pdb; pdb.set_trace()
         self.surface.actor.mapper.scalar_visibility = False
         self.surface.actor.property.diffuse_color = color
@@ -263,7 +263,7 @@ class PointComponentItem(ComponentItem):
 
     @property
     def centroid(self):
-        return np.asarray([self.xyz]).T
+        return np.asarray([self.xyz])
 
     @property
     def points(self):
@@ -347,7 +347,9 @@ class ComponentModel(QtCore.QAbstractItemModel):
 
     def setData(self, index, value, role):
         if index.isValid() and role == Qt.EditRole:
-            prop = ComponentItem.prop_map[index.column()]
+            prop_map = list(ComponentItem.prop_map) if isinstance(ComponentItem.prop_map,
+                                                                  map) else ComponentItem.prop_map
+            prop = prop_map[index.column()]
             setattr(index.internalPointer(), prop, value)
             self.dataChanged.emit(index, index)
             return True
@@ -814,7 +816,7 @@ class Application(object):
             self.segment_distance_threshold = distance
             info('thresholding on CT intensity value at %d...' % threshold)
 
-            ct_high = np.asarray(np.where(threshold <= np.array(self.ct.dataobj).T, True, False), 'i1')
+            ct_high = np.asarray(np.where(threshold <= np.array(self.ct.dataobj), True, False), 'i1')
             #info('done thresholding on CT intensity value')
             labels = ndimage.label(ct_high)[0]
             slices = ndimage.find_objects(labels)
@@ -1107,7 +1109,7 @@ class Application(object):
     def split_voxel(self, voxel, n_piece):
         #import pdb; pdb.set_trace()
         d = self.ct.getVoxDims()
-        ijk = np.asarray(np.nonzero(voxel)).T
+        ijk = np.asarray(np.nonzero(voxel))
         xyz = ijk * d
         #debug(xyz)
         centroids, label, inertia = cluster.k_means(xyz, n_piece)
@@ -1203,7 +1205,7 @@ class Application(object):
         x, y, z = to_position
         component.dot = self.mlab.points3d([x], [y], [z], color=color, scale_factor=2)
         component.dot.actor.actor.pickable = 0
-        xx, yy, zz = np.vstack([component.centroid.T, [to_position]]).T
+        xx, yy, zz = np.vstack([component.centroid, [to_position]])
         component.rod = self.mlab.plot3d(xx, yy, zz, color=color, tube_radius=0.5)
         component.rod.actor.actor.pickable = 0
         component.register_position = to_position
@@ -1382,20 +1384,22 @@ class Application(object):
 
         debug('updated component count: %d' % n)
 
-
     def update_selection_counts(self):
-        n = len(filter(lambda x: x.column()==0, self.ui.treeView_edit.selectedIndexes()))
-        m = len(filter(lambda x: x.column()==0, self.ui.listView_register.selectedIndexes()))
+        n = len(list(filter(lambda x: x.column() == 0, self.ui.treeView_edit.selectedIndexes())))
+        m = len(list(filter(lambda x: x.column() == 0, self.ui.listView_register.selectedIndexes())))
         self.ui.label_edit_select_count.setText(str(n))
         self.ui.label_register_select_count.setText(str(m))
         self.ui.label_label_select_count.setText(str(m))
 
-
     def update_register_count(self):
         n = self.register_model.rowCount()
         n_registered = 0
-        for i in xrange(n):
-            electrode =  self.segment_model.itemFromIndex(self.register_model.mapToSource(self.label_model.mapToSource(self.label_model.index(i, 0))))
+        for i in range(n):
+            electrode = self.segment_model.itemFromIndex(
+                self.register_model.mapToSource(
+                    self.label_model.mapToSource(self.label_model.index(i, 0))
+                )
+            )
             if electrode and electrode.register_method:
                 n_registered += 1
         info('registered electrode count: %d' % n_registered)
