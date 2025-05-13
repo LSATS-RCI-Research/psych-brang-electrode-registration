@@ -1194,21 +1194,23 @@ class Application(object):
         component.text = self.mlab.text3d(x, y, z, '', scale=2.)
         return component
 
-
-    def register_electrode(self, component, to_position, color=(1., 1., 1.)):
+    def register_electrode(self, component, to_position, color=(1.0, 1.0, 1.0)):
         debug('registering electrode %s to %r' % (component.name, to_position))
         if component.dot:
             component.dot.remove()
         if component.rod:
             component.rod.remove()
-        # draw dot and rod
-        x, y, z = to_position
+        # Ensure shapes are compatible for stacking
+        centroid = np.array(component.centroid).reshape(1, -1)  # Reshape to (1, 3)
+        to_position = np.array(to_position).reshape(1, -1)  # Reshape to (1, 3)
+        # Draw dot and rod
+        x, y, z = to_position.flatten()
         component.dot = self.mlab.points3d([x], [y], [z], color=color, scale_factor=2)
         component.dot.actor.actor.pickable = 0
-        xx, yy, zz = np.vstack([component.centroid, [to_position]])
+        xx, yy, zz = np.vstack([centroid, to_position]).T  # Transpose for plotting
         component.rod = self.mlab.plot3d(xx, yy, zz, color=color, tube_radius=0.5)
         component.rod.actor.actor.pickable = 0
-        component.register_position = to_position
+        component.register_position = to_position.flatten()
 
 
     def register_nearest(self, component):

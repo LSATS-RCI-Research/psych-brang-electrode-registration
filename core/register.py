@@ -35,8 +35,8 @@ def line_surf_intersection(xyz, n, points, intersection_threshold=3):
 	# FIXME this naive approach breaks for electrodes lying on the outside
 	# nearer_group = filter(lambda x: np.sign(x[2]) == np.sign(intersects[0][2]), intersects)
 	# nearer_group = filter(lambda x: np.sign(x[2]) == np.sign(intersects[0][2]), intersects)
-	mid = np.mean(map(lambda x: np.abs(x[2]), intersects))
-	nearer_group = filter(lambda x: np.abs(x[2]) < mid, intersects)
+	mid = np.mean(list(map(lambda x: np.abs(x[2]), intersects)))
+	nearer_group = list(filter(lambda x: np.abs(x[2]) < mid, intersects))
 	nearer_group.sort(key=lambda x: np.abs(x[1]))
 	# print nearer_group[:10]
 
