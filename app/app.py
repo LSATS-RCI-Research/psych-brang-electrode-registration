@@ -1532,15 +1532,15 @@ class Application(object):
                 if isinstance(y, ComponentItem) and not isinstance(y, PointComponentItem) and x.isValid():
                     components.append(y)
                 if sm.hasChildren(x):
-                    for r in reversed(xrange(sm.rowCount(x))):
+                    for r in reversed(range(sm.rowCount(x))):
                         o.append(sm.index(r, 0, x))
-            with open(fn, 'wb') as f:
+            with open(fn, 'w') as f:
                 w = csv.DictWriter(f, ['size', 'centroid.x', 'centroid.y', 'centroid.z', 'ptp.x', 'ptp.y', 'ptp.z', 'dura_distance', 'is_top_segment', 'children_count', 'electrode_count'])
                 w.writeheader()
                 for component in components:
                     centroid = component.centroid.reshape(-1)
                     ptps = component.points.ptp(axis=1)
-                    dv = np.product(self.ct.getVoxDims())
+                    dv = np.product(self.ct.header.get_zooms())
                     distance, index = self.dura_vertices_kdtree.query(centroid)
 
                     electrode_count = 1 if component.is_electrode else 0
