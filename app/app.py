@@ -1105,16 +1105,14 @@ class Application(object):
         self.update_electrode_count()
         info('imported %d electrodes' % n_points)
 
-
     def split_voxel(self, voxel, n_piece):
-        #import pdb; pdb.set_trace()
-        d = self.ct.getVoxDims()
-        ijk = np.asarray(np.nonzero(voxel))
-        xyz = ijk * d
-        #debug(xyz)
-        centroids, label, inertia = cluster.k_means(xyz, n_piece)
+        # Retrieve voxel dimensions using header.get_zooms()
+        d = np.array(self.ct.header.get_zooms()).reshape(3, 1)  # Reshape to (3, 1) for broadcasting
+        ijk = np.asarray(np.nonzero(voxel))  # Shape: (3, N)
+        xyz = ijk * d  # Element-wise multiplication with broadcasting
+        # Perform k-means clustering
+        centroids, label, inertia = cluster.k_means(xyz.T, n_piece)  # Transpose xyz for clustering
         debug('k means ended with inertia %f' % inertia)
-        #return map(lambda i: ijk[np.argwhere(label == i)], xrange(n_piece))
         return ijk, label
 
 
@@ -1122,48 +1120,50 @@ class Application(object):
     def split_component(self):
         n_piece = self.ui.spinBox_split.value()
 
-        #view = self.get_view()
-
         for idx in self.ui.treeView_edit.selectedIndexes():
             component = self.segment_model.itemFromIndex(idx)
             info('splitting %s into %d pieces' % (component.name, n_piece))
-            
+
+            # Split the voxel into pieces
             ijks, labels = self.split_voxel(component.voxel, n_piece)
             voxel = np.array(component.voxel)
-            for l, (i, j, k) in enumerate(ijks):
+
+            # Assign labels to the voxel array
+            for l, (i, j, k) in enumerate(ijks.T):  # Transpose `ijks` for correct unpacking
                 voxel[i, j, k] = labels[l] + 1
-            # create new segments
+
+            # Create new segments
             slices = ndimage.find_objects(voxel)
             root = self.segment_model.root_item
             for i, s in enumerate(slices):
                 debug(s)
-                bbc0 = np.reshape(map(lambda x: x.start - 1, s), (-1, 1))
-                bbc1 = np.reshape(map(lambda x: x.stop + 1, s), (-1, 1))
-                new_voxel = np.asarray(np.where(voxel[slice(bbc0[0], bbc1[0]), slice(bbc0[1], bbc1[1]), slice(bbc0[2], bbc1[2])] == i + 1, 1, 0), 'i1')
+                bbc0 = np.reshape([x.start - 1 for x in s], (-1, 1))
+                bbc1 = np.reshape([x.stop + 1 for x in s], (-1, 1))
+                new_voxel = np.asarray(np.where(voxel[
+                                                    slice(bbc0[0][0], bbc1[0][0]),
+                                                    slice(bbc0[1][0], bbc1[1][0]),
+                                                    slice(bbc0[2][0], bbc1[2][0])
+                                                ] == i + 1, 1, 0), 'i1')
                 co = component.transform[:3, :3].dot(bbc0)
                 m = np.array(component.transform)
-                m[:3, 3:] += co
                 new_component = self.create_segment(new_voxel, m, 'split %d' % i)
                 self.pickable_actors[repr(new_component.surface.actor.actor)] = new_component
-                # tree layout
-                self.segment_model.beginInsertRows(idx, component.childCount(), component.childCount()+1)
+
+                # Update tree layout
+                self.segment_model.beginInsertRows(idx, component.childCount(), component.childCount() + 1)
                 component.appendChild(new_component)
                 self.segment_model.endInsertRows()
-            # remove the original segment
+
+            # Remove the original segment
             self._remove_segment(component)
             self.ui.treeView_edit.expand(idx)
             self.ui.treeView_edit.scrollTo(idx, QtGui.QAbstractItemView.PositionAtTop)
-        #self.set_view(*view)
 
+        # Update models and counts
         self.register_model.build_index_maps()
         self.update_electrode_count()
         self.update_component_count()
         self.update_register_count()
-
-        #debug('electrode #', self.register_model.rowCount(QtCore.QModelIndex()))
-        #import pdb; pdb.set_trace()
-        #self.ui.label_electrode_num.setText(str(self.register_model.rowCount(QtCore.QModelIndex())))
-
 
     def create_segment(self, voxel, transform, name='component'):
         source = self.mlab.pipeline.scalar_field(voxel)
@@ -1362,7 +1362,7 @@ class Application(object):
             if isinstance(y, ComponentItem) and y.is_electrode:
                 n += 1
             if sm.hasChildren(x):
-                for r in xrange(sm.rowCount(x)):
+                for r in range(sm.rowCount(x)):
                     o.append(sm.index(r, 0, x))
         
         self.ui.label_edit_electrode_count.setText(str(n))
@@ -1379,7 +1379,7 @@ class Application(object):
             x = o.pop()
             n += 1
             if sm.hasChildren(x):
-                for r in xrange(sm.rowCount(x)):
+                for r in range(sm.rowCount(x)):
                     o.append(sm.index(r, 0, x))
         
         self.ui.label_component_count.setText(str(n))
