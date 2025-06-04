@@ -152,6 +152,13 @@ class ComponentItem(object):
         return self.transform[:3, :3].dot(np.reshape(c, (3, -1))) + self.transform[:3, 3:]
 
     @property
+    def rodstart(self):
+        c = center_of_mass(self.voxel)
+        corct = (1, 1, 1)
+        corrected_c = np.reshape(c, (3, -1)) + np.reshape(corct, (3, -1))
+        return self.transform[:3, :3].dot(corrected_c) + self.transform[:3, 3:]
+
+    @property
     def grid_label(self):
         return self._grid_label
 
@@ -1201,7 +1208,7 @@ class Application(object):
         if component.rod:
             component.rod.remove()
         # Ensure shapes are compatible for stacking
-        centroid = np.array(component.centroid).reshape(1, -1)  # Reshape to (1, 3)
+        centroid = np.array(component.rodstart).reshape(1, -1)  # Reshape to (1, 3)
         to_position = np.array(to_position).reshape(1, -1)  # Reshape to (1, 3)
         # Draw dot and rod
         x, y, z = to_position.flatten()
